@@ -6,9 +6,9 @@ internal class Octree
 {
     public OctreeNode root;
 
-    public Octree(Bounds bounds, List<GameObject> boids, int boidsCapacity)
+    public Octree( Vector3 boundsMin, Vector3 boundsMax, List<GameObject> boids, int boidsCapacity)
     {
-        this.root = new OctreeNode(bounds, null, boids, boidsCapacity);
+        this.root = new OctreeNode(boundsMin, boundsMax, null, boids, boidsCapacity);
     }
 
     public void BuildTree()
@@ -16,7 +16,7 @@ internal class Octree
         root.BuildTree();
     }
 
-    public List<GameObject> GetNeighbors(Vector3 boidPosition, OctreeNode currentNode, float awarenessRadius)
+    public List<NeighborMetaData> GetNeighbors(Vector3 boidPosition, OctreeNode currentNode, float awarenessRadius)
     {
         if(root == null) return null;
 
@@ -28,19 +28,16 @@ internal class Octree
         {
             if(current == null) return null;
 
-            var extent = current.region.extents;
-            var center = current.region.center;
-
             //if boid position is inside the box
             if(!current.region.Contains(boidPosition)) break;
-
+            
             //if boid's awareness radius is inside the node then break. node found
-            if ((boidPosition.x - awarenessRadius >= (center.x - extent.x)) &&
-                (boidPosition.x + awarenessRadius <= (center.x + extent.x)) &&
-                (boidPosition.y - awarenessRadius >= (center.y - extent.y)) &&
-                (boidPosition.y + awarenessRadius <= (center.y + extent.y)) &&
-                (boidPosition.z - awarenessRadius >= (center.z - extent.z)) &&
-                (boidPosition.z + awarenessRadius <= (center.z + extent.z)))
+            if ((boidPosition.x - awarenessRadius >= current.region.min.x) &&
+                (boidPosition.x + awarenessRadius <= current.region.max.x) &&
+                (boidPosition.y - awarenessRadius >= current.region.min.y) &&
+                (boidPosition.y + awarenessRadius <= current.region.max.y) &&
+                (boidPosition.z - awarenessRadius >= current.region.min.z) &&
+                (boidPosition.z + awarenessRadius <= current.region.max.z))
             {
                 break;
             }
@@ -54,7 +51,16 @@ internal class Octree
 
     public OctreeNode GetOctreeNode(Vector3 boidPosition)
     {
-        if(root == null || !root.region.Contains(boidPosition)) return null;
+        if (root == null)
+        {
+            Debug.Log("returning null from GetOctreeNode because root is null");
+            return null;
+        }
+        if(!root.region.Contains(boidPosition))
+        {
+            Debug.Log($"returning null from GetOctreeNode because root does not contain the boid: root-{root.region.min},{ root.region.max} and boidpos id {boidPosition}");
+            return null;
+        }
 
         var current = root;
         var previous = current.parent;

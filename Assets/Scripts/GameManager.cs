@@ -24,6 +24,14 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //_flock.UpdateFlock(Time.deltaTime);
+        if(Input.GetKeyUp(KeyCode.G))
+        {
+            _startAI = !_startAI;
+        }
+        if(_startAI)
+        {
+            //Debug.Log("Update started.");
+            _flock.UpdateFlock(Time.deltaTime);
+        }           
     }
 }

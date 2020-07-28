@@ -11,7 +11,7 @@ internal class OctreeNode
 
     public OctreeNode[] child;
 
-    public new Bounds region;
+    public Bounds region;
 
     public int boidsCapacity;
 
@@ -20,11 +20,11 @@ internal class OctreeNode
         this.parent = null;
     }
 
-    public OctreeNode(Bounds region, OctreeNode parent, List<GameObject> boids, int boidsCapacity)
+    public OctreeNode(Vector3 boundsMin, Vector3 boundsMax, OctreeNode parent, List<GameObject> boids, int boidsCapacity)
     {
         child = new OctreeNode[CHILDREN_CAPACITY];
 
-        this.region = region;
+        this.region = CreateRegion(boundsMin, boundsMax);
         this.parent = parent;
         this.boids = boids;
         this.boidsCapacity = boidsCapacity;
@@ -44,17 +44,22 @@ internal class OctreeNode
 
         //if the dimensions of this node is greater then the min required then this is not a leaf node; subdivide
 
-        octant[0] = new Bounds(region.min, center);
-        octant[1] = new Bounds(new Vector3(center.x, region.min.y, region.min.z), new Vector3(region.max.x, center.y, center.z));
-        octant[2] = new Bounds(new Vector3(center.x, region.min.y, center.z), new Vector3(region.max.x, center.y, region.max.z));
-        octant[3] = new Bounds(new Vector3(region.min.x, region.min.y, center.z), new Vector3(center.x, center.y, region.max.z));
-        octant[4] = new Bounds(new Vector3(region.min.x, center.y, region.min.z), new Vector3(center.x, region.max.y, center.z));
-        octant[5] = new Bounds(new Vector3(center.x, center.y, region.min.z), new Vector3(region.max.x, region.max.y, center.z));
-        octant[6] = new Bounds(center, region.max);
-        octant[7] = new Bounds(new Vector3(region.min.x, center.y, center.z), new Vector3(center.x, region.max.y, region.max.z));
+        octant[0] = CreateRegion(region.min, center);
+        octant[1] = CreateRegion(new Vector3(center.x, region.min.y, region.min.z), new Vector3(region.max.x, center.y, center.z));
+        octant[2] = CreateRegion(new Vector3(center.x, region.min.y, center.z), new Vector3(region.max.x, center.y, region.max.z));
+        octant[3] = CreateRegion(new Vector3(region.min.x, region.min.y, center.z), new Vector3(center.x, center.y, region.max.z));
+        octant[4] = CreateRegion(new Vector3(region.min.x, center.y, region.min.z), new Vector3(center.x, region.max.y, center.z));
+        octant[5] = CreateRegion(new Vector3(center.x, center.y, region.min.z), new Vector3(region.max.x, region.max.y, center.z));
+        octant[6] = CreateRegion(center, region.max);
+        octant[7] = CreateRegion(new Vector3(region.min.x, center.y, center.z), new Vector3(center.x, region.max.y, region.max.z));
 
         //list of boids to be distributed amongst the children
         List<GameObject>[] boidDistribution = new List<GameObject>[CHILDREN_CAPACITY];
+        for (int i = 0; i < CHILDREN_CAPACITY;++i)
+        {
+            boidDistribution[i] = new List<GameObject>();
+        }
+
         //list of boids that are to be moved down to the children and needs to be removed from this node
         List<GameObject> boidsToRemove = new List<GameObject>();
 
@@ -82,7 +87,7 @@ internal class OctreeNode
         {
             if(child[i] == null)
             {
-                child[i] = new OctreeNode(octant[i], this, boidDistribution[i], boidsCapacity);
+                child[i] = new OctreeNode(octant[i].min,octant[i].max, this, boidDistribution[i], boidsCapacity);
             }
             else
             {
@@ -95,11 +100,11 @@ internal class OctreeNode
         }
     }
 
-    public List<GameObject> GetNeighborsFromChildren()
+    public List<NeighborMetaData> GetNeighborsFromChildren()
     {
         Stack<OctreeNode> dfsStack = new Stack<OctreeNode>();
 
-        List<GameObject> neighbors = new List<GameObject>();
+        List<NeighborMetaData> neighbors = new List<NeighborMetaData>();
 
         dfsStack.Push(this);
 
@@ -110,9 +115,18 @@ internal class OctreeNode
             if(visited == null) continue;
 
             //visit current and store neighbors
-            foreach(var neighbor in boids)
+            foreach(var neighbor in visited.boids)
             {
-                if(neighbor != null) neighbors.Add(neighbor);
+                if(neighbor != null)
+                {
+                    //neighbors.Add(neighbor);
+                    neighbors.Add(new NeighborMetaData
+                    {
+                        name = neighbor.name,
+                        position = neighbor.transform.position,
+                        velocity = neighbor.GetComponent<Boid>().GetVelocity()
+                    });
+                } 
             }
 
             foreach(var child in visited.child)
@@ -123,4 +137,18 @@ internal class OctreeNode
 
         return (neighbors.Count > 0 )?neighbors:null;
     }
+
+    private Bounds CreateRegion(Vector3 boundsMin, Vector3 boundsMax)
+    {
+        Bounds bound = new Bounds();
+        bound.SetMinMax(boundsMin, boundsMax);
+        return bound;
+    }
+}
+
+public class NeighborMetaData
+{
+    public string name;
+    public Vector3 position;
+    public Vector3 velocity;
 }
