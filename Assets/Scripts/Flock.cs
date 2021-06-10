@@ -4,10 +4,10 @@ using UnityEngine;
 
 internal class Flock : MonoBehaviour
 {
-    private const float AWARENESS_RADIUS = 4.0f;
-    private const float ALIGNMENT_RADIUS = 4.0f;
-    private const float COHESION_RADIUS = 4.0f;
-    private const float SEPARATION_RADIUS = 1.0f;
+    private const float AWARENESS_RADIUS = 6.0f;
+    private const float ALIGNMENT_RADIUS = 6.0f;
+    private const float COHESION_RADIUS = 6.0f;
+    private const float SEPARATION_RADIUS = 3.0f;
 
     [SerializeField, Tooltip("Other boids which fall inside this FOV are neighbors. FOV is in degrees.")]
     private float BoidFOV;
@@ -22,7 +22,7 @@ internal class Flock : MonoBehaviour
         _boidPrefab = boidPrefab;
         _boids = new List<GameObject>();
 
-        for (int i = 0; i < 100; ++i)
+        for (int i = 0; i < 150; ++i)
         {
             string name = $"Boid{i}";
 
@@ -34,28 +34,16 @@ internal class Flock : MonoBehaviour
             _boids.Add(boid);
         }
 
-        _tree = new Octree(new Vector3(-20.0f, 0.0f, -20.0f),new Vector3(20.0f, 10.0f, 20.0f) , new List<GameObject>(_boids), 10);
+        _tree = new Octree(new Vector3(-25.0f, 0.0f, -25.0f),new Vector3(25.0f, 15.0f, 25.0f) , new List<GameObject>(_boids), 10);
         _tree.BuildTree();
-        int j = 0;
     }
 
     public void UpdateFlock(float deltaTime)
     {
-        if(_boids.Count == 1)
-        {
-            _boids[0].GetComponent<Boid>().UpdateBoid(deltaTime, Vector3.zero,Vector3.zero,Vector3.zero);
-            return;
-        }
         foreach(var boid in _boids)
         {
             var boidPosition = boid.transform.position;
-            var name = boid.name;
             var currentNode = _tree.GetOctreeNode(boidPosition);
-
-            if(currentNode == null)
-            {
-                Debug.Log($"current node is null for boid:: {name}");
-            }
 
             var neighbors = _tree.GetNeighbors(boidPosition, currentNode, AWARENESS_RADIUS);
 

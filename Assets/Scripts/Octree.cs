@@ -18,9 +18,7 @@ internal class Octree
 
     public List<NeighborMetaData> GetNeighbors(Vector3 boidPosition, OctreeNode currentNode, float awarenessRadius)
     {
-        if(root == null) return null;
-
-        //traverse up until we reach a node that completely encloses the radius of awareness of the given boid
+        //traverse up until we reach a node that completely encloses the radius of awareness for the given boid
         var current = currentNode;
         var previous = currentNode.parent;
 
@@ -51,17 +49,6 @@ internal class Octree
 
     public OctreeNode GetOctreeNode(Vector3 boidPosition)
     {
-        if (root == null)
-        {
-            Debug.Log("returning null from GetOctreeNode because root is null");
-            return null;
-        }
-        if(!root.region.Contains(boidPosition))
-        {
-            Debug.Log($"returning null from GetOctreeNode because root does not contain the boid: root-{root.region.min},{ root.region.max} and boidpos id {boidPosition}");
-            return null;
-        }
-
         var current = root;
         var previous = current.parent;
 
