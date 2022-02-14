@@ -64,7 +64,7 @@ public class Boid : MonoBehaviour
             cohesionSteering *= MaxSpeed;
             cohesionSteering = cohesionSteering - _velocity;
 
-            if(cohesionSteering.sqrMagnitude > (MaxSteeringForce*MaxSteeringForce))
+            if(cohesionSteering.sqrMagnitude > (MaxSteeringForce * MaxSteeringForce))
             {
                 cohesionSteering.Normalize();
                 cohesionSteering *= MaxSteeringForce;

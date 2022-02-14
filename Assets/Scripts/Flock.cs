@@ -4,9 +4,9 @@ using UnityEngine;
 
 internal class Flock : MonoBehaviour
 {
-    private const float AWARENESS_RADIUS = 6.0f;
+    private const float AWARENESS_RADIUS = 10.0f;
     private const float ALIGNMENT_RADIUS = 6.0f;
-    private const float COHESION_RADIUS = 6.0f;
+    private const float COHESION_RADIUS = 10.0f;
     private const float SEPARATION_RADIUS = 3.0f;
 
     [SerializeField, Tooltip("Other boids which fall inside this FOV are neighbors. FOV is in degrees.")]
