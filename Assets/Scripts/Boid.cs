@@ -17,9 +17,21 @@ public class Boid : MonoBehaviour
 
     [SerializeField]
     private float MaxSteeringForce;
+    
+    [SerializeField]
+    private float AlignmentWeight = 1.0f;
+
+    [SerializeField]
+    private float CohesionWeight = 1.0f;
+
+    [SerializeField]
+    private float SeparationWeight = 1.0f;
 
     //private Vector3 _newPosAfterWallCollision;
     private LineRenderer lineRenderer;
+
+    private float _maxSteeringForceSquared;
+    
     // Start is called before the first frame update
     private void Start() 
     {
@@ -31,6 +43,8 @@ public class Boid : MonoBehaviour
         _velocity /= _velocity.magnitude;
         _velocity *= MaxSpeed;
 
+        _maxSteeringForceSquared = MaxSteeringForce * MaxSteeringForce;
+        
         transform.localRotation = Quaternion.LookRotation(_velocity);
         _extent = GetComponent<Renderer>().bounds.extents;
     }
@@ -41,7 +55,7 @@ public class Boid : MonoBehaviour
     }
 
     // Update is called once per frame
-    public void UpdateBoid(float deltaTime, Vector3 alignmentSteering , Vector3 cohesionSteering , Vector3 separationSteering )
+    public void UpdateBoid(Vector3 alignmentSteering , Vector3 cohesionSteering , Vector3 separationSteering )
     {
         if(alignmentSteering != Vector3.zero)
         {
@@ -50,43 +64,31 @@ public class Boid : MonoBehaviour
 
             alignmentSteering = alignmentSteering - _velocity;
 
-            if(alignmentSteering.sqrMagnitude >= (MaxSteeringForce*MaxSteeringForce))
-            {
-                alignmentSteering.Normalize();
-                alignmentSteering *= MaxSteeringForce;
-            }
+            alignmentSteering = Vector3.ClampMagnitude(alignmentSteering, MaxSteeringForce) * AlignmentWeight;
         }
 
         if(cohesionSteering != Vector3.zero)
         {
-            cohesionSteering = cohesionSteering - transform.position;
+            cohesionSteering -= transform.position;
             cohesionSteering.Normalize();
             cohesionSteering *= MaxSpeed;
-            cohesionSteering = cohesionSteering - _velocity;
+            cohesionSteering -= _velocity;
 
-            if(cohesionSteering.sqrMagnitude > (MaxSteeringForce * MaxSteeringForce))
-            {
-                cohesionSteering.Normalize();
-                cohesionSteering *= MaxSteeringForce;
-            }
+            cohesionSteering = Vector3.ClampMagnitude(cohesionSteering, MaxSteeringForce) * CohesionWeight;
         }
 
         if(separationSteering != Vector3.zero)
         {
             separationSteering.Normalize();
             separationSteering *= MaxSpeed;
-            separationSteering = separationSteering - _velocity;
+            separationSteering -= _velocity;
 
-            if (separationSteering.sqrMagnitude > (MaxSteeringForce * MaxSteeringForce))
-            {
-                separationSteering.Normalize();
-                separationSteering *= MaxSteeringForce;
-            }
+            separationSteering = Vector3.ClampMagnitude(separationSteering, MaxSteeringForce) * SeparationWeight;
         }
 
         _acceleration = alignmentSteering + cohesionSteering + separationSteering;
-
-        _velocity = _velocity + _acceleration;
+        
+        _velocity += _acceleration;
 
         if(_velocity.magnitude > MaxSpeed)
         {
@@ -94,7 +96,7 @@ public class Boid : MonoBehaviour
             _velocity *= MaxSpeed;
         }
 
-        transform.position = transform.position + (_velocity * 1.0f/30.0f);
+        gameObject.transform.position = transform.position + (_velocity * (1.0f/30.0f));
         transform.localRotation = Quaternion.LookRotation(_velocity);
         _acceleration = Vector3.zero;
     }
@@ -113,4 +115,5 @@ public class Boid : MonoBehaviour
             _velocity = _velocity - 2 * (Vector3.Dot(_velocity, hit.normal)) * hit.normal;
         }
     }
+
 }

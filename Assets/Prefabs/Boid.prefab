@@ -95,6 +95,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9432d25ab2bd364388ef568f1eb7914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MaxSpeed: 2
-  FarSightness: 2
-  MaxSteeringForce: 0.05
+  MaxSpeed: 10
+  FarSightness: 3
+  MaxSteeringForce: 1.2
+  AlignmentWeight: 1
+  CohesionWeight: 1
+  SeparationWeight: 1

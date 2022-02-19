@@ -16,7 +16,7 @@ public class GameManager : MonoBehaviour
 
     private void Start() 
     {
-        _flock.Intialize(_boidPrefab);
+        _flock.Initialize(_boidPrefab);
     }
 
     // Update is called once per frame
